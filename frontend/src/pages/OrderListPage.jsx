@@ -23,82 +23,111 @@ const OrderListPage = () => {
       });
   };
 
-  // ✅ [수정] 메모리에 남아있는 주문들로만 총 금액 계산
-  // 이제 리스트에서 삭제되면 이 값도 자동으로 즉시 줄어듭니다.
   const totalAmount = orders.reduce((acc, cur) => acc + cur.totalPrice, 0);
 
-  // ✅ [수정] 주문 삭제 처리 로직
   const handleCancel = async (orderId) => {
     if (!window.confirm("정말 주문을 취소하시겠습니까? 취소 시 목록에서 완전히 삭제됩니다.")) return;
     try {
-      // 1. 서버에 삭제(Delete) 요청 (기존 patch에서 변경)
       await api.delete(`/orders/${orderId}`);
-
       alert("주문이 취소(삭제)되었습니다.");
-
-      // 2. ✅ 핵심: 화면 메모리(State)에서 즉시 제거
-      // 서버에서 다시 데이터를 받아오지 않아도 화면이 즉시 갱신되며 총액이 정상화됩니다.
       setOrders(prevOrders => prevOrders.filter(order => order.id !== orderId));
-
     } catch (err) {
       console.error(err);
       alert("취소 처리 중 오류가 발생했습니다.");
     }
   };
 
-  if (loading) return <div style={{ textAlign: 'center', padding: '50px' }}>로딩 중...</div>;
+  if (loading) return <div style={{ textAlign: 'center', padding: '100px', fontSize: '1.2rem' }}>로딩 중...</div>;
 
   return (
-    <div style={{ maxWidth: '800px', margin: '0 auto', padding: '40px 20px' }}>
+    <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '60px 20px', backgroundColor: '#fff', minHeight: '100vh' }}>
 
-      {/* 1️⃣ 제목 및 상단 버튼 */}
-      <div style={{ textAlign: 'center', marginBottom: '30px' }}>
-        <h1 style={{ fontSize: '2.2rem', marginBottom: '20px', color: '#333' }}>📜 내 주문 관리</h1>
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '15px' }}>
-          <button onClick={() => navigate('/')} style={navBtnStyle}>🏠 홈으로</button>
-          <button onClick={() => navigate('/products')} style={{...navBtnStyle, backgroundColor: '#00c73c', color: 'white', border: 'none'}}>계속 쇼핑하기</button>
-        </div>
+      {/* 1️⃣ 제목 섹션 (버튼을 제거하고 제목만 남김) */}
+      <div style={{ textAlign: 'center', marginBottom: '50px' }}>
+        <h1 style={{ fontSize: '2.5rem', color: '#333', fontWeight: 'bold' }}>📜 내 주문 관리</h1>
       </div>
 
-      {/* 2️⃣ 총 결제 금액 요약 섹션 */}
-      <div style={{ backgroundColor: '#fdfdfd', border: '1px solid #eee', borderRadius: '15px', padding: '25px', marginBottom: '30px', textAlign: 'center', boxShadow: '0 2px 10px rgba(0,0,0,0.03)' }}>
-        <p style={{ margin: 0, color: '#888', fontSize: '1rem' }}>현재 보유 중인 총 주문 금액</p>
-        <h2 style={{ margin: '10px 0 0 0', color: '#27ae60', fontSize: '2rem' }}>{totalAmount.toLocaleString()}원</h2>
+      {/* 2️⃣ 총 결제 금액 요약 */}
+      <div style={{
+        backgroundColor: '#fcfcfc',
+        border: '1px solid #eee',
+        borderRadius: '20px',
+        padding: '35px',
+        marginBottom: '50px',
+        textAlign: 'center',
+        boxShadow: '0 4px 15px rgba(0,0,0,0.03)'
+      }}>
+        <p style={{ margin: 0, color: '#888', fontSize: '1.1rem', fontWeight: '500' }}>현재 보유하고 있는 전체 주문 금액</p>
+        <h2 style={{ margin: '15px 0 0 0', color: '#00c73c', fontSize: '2.8rem', fontWeight: 'bold' }}>
+          {totalAmount.toLocaleString()}원
+        </h2>
       </div>
 
       {/* 3️⃣ 주문 내역 리스트 */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '60px' }}>
         {orders.length > 0 ? (
           orders.map(order => (
-            <div key={order.id} style={{
-              border: '1px solid #efefef',
-              padding: '20px',
-              borderRadius: '12px',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              backgroundColor: '#fff' // 삭제할 것이므로 취소 상태 배경은 제거
-            }}>
+            <div key={order.id}
+              style={{
+                border: '1px solid #eee',
+                padding: '25px 30px',
+                borderRadius: '15px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                backgroundColor: '#fff',
+                transition: 'all 0.3s ease',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = '#00c73c';
+                e.currentTarget.style.transform = 'translateY(-3px)';
+                e.currentTarget.style.boxShadow = '0 6px 20px rgba(0,199,60,0.1)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = '#eee';
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.02)';
+              }}
+            >
               <div>
-                <h3 style={{ margin: '0 0 5px 0' }}>{order.productName}</h3>
-                <p style={{ margin: 0, fontSize: '0.9rem', color: '#999' }}>
-                  {new Date(order.orderDate).toLocaleDateString()} | {order.quantity}개
+                <h3 style={{ margin: '0 0 8px 0', fontSize: '1.3rem', color: '#333' }}>{order.productName}</h3>
+                <p style={{ margin: 0, fontSize: '0.95rem', color: '#999' }}>
+                  📅 {new Date(order.orderDate).toLocaleDateString()} | 📦 {order.quantity}개
                 </p>
                 <span style={{
-                  display: 'inline-block', marginTop: '10px', padding: '4px 10px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 'bold',
-                  backgroundColor: '#e8f5e9', color: '#2e7d32'
+                  display: 'inline-block', marginTop: '15px', padding: '5px 12px', borderRadius: '30px', fontSize: '0.8rem', fontWeight: 'bold',
+                  backgroundColor: '#e8f5e9', color: '#00c73c', border: '1px solid #00c73c'
                 }}>
                   결제완료
                 </span>
               </div>
 
               <div style={{ textAlign: 'right' }}>
-                <p style={{ fontWeight: 'bold', fontSize: '1.2rem', margin: '0 0 10px 0', color: '#333' }}>
+                <p style={{ fontWeight: 'bold', fontSize: '1.5rem', margin: '0 0 15px 0', color: '#333' }}>
                   {order.totalPrice.toLocaleString()}원
                 </p>
                 <button
                     onClick={() => handleCancel(order.id)}
-                    style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid #ff4d4f', color: '#ff4d4f', backgroundColor: '#fff', cursor: 'pointer', fontSize: '0.85rem' }}
+                    style={{
+                      padding: '8px 18px',
+                      borderRadius: '8px',
+                      border: '1px solid #ff4d4f',
+                      color: '#ff4d4f',
+                      backgroundColor: '#fff',
+                      cursor: 'pointer',
+                      fontSize: '0.9rem',
+                      fontWeight: 'bold',
+                      transition: 'all 0.2s'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.target.style.backgroundColor = '#ff4d4f';
+                      e.target.style.color = '#fff';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.backgroundColor = '#fff';
+                      e.target.style.color = '#ff4d4f';
+                    }}
                 >
                     취소하기
                 </button>
@@ -106,20 +135,42 @@ const OrderListPage = () => {
             </div>
           ))
         ) : (
-          <div style={{ textAlign: 'center', color: '#bbb', padding: '50px' }}>주문 내역이 비어 있습니다.</div>
+          <div style={{ textAlign: 'center', color: '#bbb', padding: '100px', fontSize: '1.1rem' }}>
+            입금 확인된 주문 내역이 없습니다.
+          </div>
         )}
       </div>
+
+      {/* 4️⃣ 하단 이동 버튼 (가장 밑으로 이동됨) */}
+      <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', borderTop: '1px solid #eee', paddingTop: '40px' }}>
+          <button
+            onClick={() => navigate('/')}
+            style={navBtnStyle}
+            onMouseEnter={(e) => e.target.style.borderColor = '#00c73c'}
+            onMouseLeave={(e) => e.target.style.borderColor = '#ddd'}
+          >🏠 홈으로 돌아가기</button>
+          <button
+            onClick={() => navigate('/products')}
+            style={{...navBtnStyle, backgroundColor: '#00c73c', color: 'white', border: 'none'}}
+            onMouseEnter={(e) => e.target.style.backgroundColor = '#00ab33'}
+            onMouseLeave={(e) => e.target.style.backgroundColor = '#00c73c'}
+          >🛍️ 계속 쇼핑하기</button>
+      </div>
+
     </div>
   );
 };
 
 const navBtnStyle = {
-  padding: '10px 20px',
-  borderRadius: '10px',
-  border: '1px solid #ddd',
+  padding: '15px 35px',
+  borderRadius: '12px',
+  border: '2px solid #eee',
   backgroundColor: '#fff',
+  color: '#666',
   cursor: 'pointer',
-  fontWeight: 'bold'
+  fontWeight: 'bold',
+  fontSize: '1rem',
+  transition: 'all 0.2s'
 };
 
 export default OrderListPage;

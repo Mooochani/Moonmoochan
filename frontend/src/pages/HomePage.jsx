@@ -10,7 +10,6 @@ export default function HomePage() {
     const handleLogout = () => {
         logout();
         navigate('/login');
-        console.log('✅ 로그아웃 완료');
     };
 
     return (
@@ -19,12 +18,8 @@ export default function HomePage() {
                 <div className="header-content">
                     <h1>🛒 네이버 쇼핑커머스</h1>
                     <div className="header-right">
-                        <span className="user-name">
-                            👤 {user?.name}님 환영합니다!
-                        </span>
-                        <button className="logout-btn" onClick={handleLogout}>
-                            로그아웃
-                        </button>
+                        <span className="user-name">👤 {user?.name}님 환영합니다!</span>
+                        <button className="logout-btn" onClick={handleLogout}>로그아웃</button>
                     </div>
                 </div>
             </header>
@@ -37,61 +32,29 @@ export default function HomePage() {
                         <p><strong>이름:</strong> {user?.name}</p>
                         <p><strong>이메일:</strong> {user?.email}</p>
                         <p><strong>사용자 ID:</strong> {user?.userId}</p>
-                        <p><strong>로그인 상태:</strong> ✅ 인증됨</p>
                     </div>
                 </div>
 
                 <div className="features-section">
                     <h3>📋 주요 기능</h3>
                     <div className="features-grid">
-                        <div
-                            className="feature-card"
-                            onClick={() => navigate('/products')}
-                            style={{ cursor: 'pointer', border: '2px solid #00c73c' }}
-                        >
+                        <div className="feature-card" onClick={() => navigate('/products')}>
                             <h4>🛍️ 상품 조회</h4>
                             <p>판매 중인 모든 상품을 확인하세요</p>
                         </div>
-
-                        <div
-                            className="feature-card"
-                            onClick={() => navigate('/orders')}
-                            style={{ cursor: 'pointer', border: '1px solid #ddd' }}
-                        >
+                        <div className="feature-card" onClick={() => navigate('/orders')}>
                             <h4>📦 주문 관리</h4>
                             <p>구매한 상품의 주문 현황을 확인하세요</p>
                         </div>
-
-                        <div
-                            className="feature-card"
-                            onClick={() => navigate('/sales-stats')}
-                            style={{ cursor: 'pointer', border: '1px solid #ddd' }}
-                        >
+                        <div className="feature-card" onClick={() => navigate('/sales-stats')}>
                             <h4>💰 판매 통계</h4>
                             <p>판매자라면 판매 통계를 확인하세요</p>
                         </div>
-
-                        {/* ✅ 수정: 클릭 이벤트와 커서 스타일 추가 */}
-                        <div
-                            className="feature-card"
-                            onClick={() => navigate('/review-management')}
-                            style={{ cursor: 'pointer', border: '1px solid #ddd' }}
-                        >
+                        <div className="feature-card" onClick={() => navigate('/review-management')}>
                             <h4>⭐ 리뷰 관리</h4>
                             <p>리뷰를 작성하고 관리하세요</p>
                         </div>
                     </div>
-                </div>
-
-                <div className="day2-section">
-                    <h3>🎯 진행 현황</h3>
-                    <ul className="day2-list">
-                        <li>✅ <strong>회원가입 & 로그인</strong> (완료)</li>
-                        <li>✅ <strong>상품 목록 페이지 연결</strong> (완료)</li>
-                        <li>✅ <strong>주문 내역 조회</strong> (완료)</li>
-                        <li>✅ <strong>판매 통계 대시보드</strong> (완료)</li>
-                        <li>⏳ <strong>상품 리뷰 관리</strong> (진행 중)</li>
-                    </ul>
                 </div>
             </main>
 
