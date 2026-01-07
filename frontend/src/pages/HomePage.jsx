@@ -67,7 +67,7 @@ export default function HomePage() {
                         </div>
                         <div className="feature-card">
                             <h4>⭐ 리뷰 관리</h4>
-                            <p>구매자 리뷰를 작성하고 관리하세요</p>
+                            <p>리뷰를 작성하고 관리하세요</p>
                         </div>
                     </div>
                 </div>
