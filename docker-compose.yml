@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  # 데이터베이스 서버 (창고)
+  postgres:
+    image: postgres:15-alpine
+    container_name: commerceweb-postgres
+    environment:
+      POSTGRES_DB: commerceweb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 56678
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+
+  # 데이터 저장소 (보조 창고)
+  redis:
+    image: redis:7-alpine
+    container_name: commerceweb-redis
+    ports:
+      - "6379:6379"
+
+  # 백엔드 서버 (주방)
+  backend:
+    build:
+      # 폴더 이름을 api-server로 바꾸셨다면 아래 경로가 정답입니다.
+      context: ./backend/api-server
+      dockerfile: Dockerfile
+    container_name: commerceweb-backend
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/commerceweb
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: 56678
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: 6379
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+    depends_on:
+      - postgres
+      - redis
+    ports:
+      - "8080:8080"
+
+  # 프론트엔드 서버 (홀)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: commerceweb-frontend
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+
+volumes:
+  postgres-data:
+  redis-data:

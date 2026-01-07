@@ -1,0 +1,249 @@
+/* ============================================
+   HomePage 스타일링 (네이버 쇼핑커머스)
+   ============================================ */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: #f5f5f5;
+}
+
+.home-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* ============= 헤더 ============= */
+.home-header {
+    background: linear-gradient(135deg, #1ec800 0%, #06c755 100%);
+    color: white;
+    padding: 20px 0;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.header-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.home-header h1 {
+    font-size: 28px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.user-name {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.logout-btn {
+    background-color: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    padding: 8px 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s;
+    font-size: 13px;
+}
+
+.logout-btn:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
+}
+
+/* ============= 메인 콘텐츠 ============= */
+.home-main {
+    flex: 1;
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+    padding: 40px 20px;
+}
+
+/* 환영 섹션 */
+.welcome-section {
+    background: white;
+    padding: 40px;
+    border-radius: 10px;
+    margin-bottom: 30px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    text-align: center;
+    border-left: 5px solid #1ec800;
+}
+
+.welcome-section h2 {
+    font-size: 32px;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.welcome-subtitle {
+    font-size: 16px;
+    color: #666;
+    margin-bottom: 30px;
+}
+
+.user-info-card {
+    background: #f9f9f9;
+    padding: 20px;
+    border-radius: 8px;
+    display: inline-block;
+    text-align: left;
+}
+
+.user-info-card p {
+    margin: 8px 0;
+    font-size: 14px;
+    color: #666;
+}
+
+.user-info-card strong {
+    color: #333;
+    font-weight: 600;
+}
+
+/* 기능 섹션 */
+.features-section {
+    margin-bottom: 40px;
+}
+
+.features-section h3 {
+    font-size: 20px;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.feature-card {
+    background: white;
+    padding: 25px;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s;
+    border-top: 3px solid #1ec800;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 20px rgba(30, 200, 0, 0.2);
+}
+
+.feature-card h4 {
+    font-size: 18px;
+    color: #1ec800;
+    margin-bottom: 10px;
+}
+
+.feature-card p {
+    font-size: 14px;
+    color: #666;
+}
+
+/* Day 2 섹션 */
+.day2-section {
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    border-left: 5px solid #ffa500;
+}
+
+.day2-section h3 {
+    color: #ffa500;
+    margin-top: 0;
+}
+
+.day2-list {
+    list-style: none;
+    padding: 0;
+}
+
+.day2-list li {
+    padding: 12px 0;
+    color: #666;
+    font-size: 14px;
+    border-bottom: 1px solid #eee;
+}
+
+.day2-list li:last-child {
+    border-bottom: none;
+}
+
+.day2-list strong {
+    color: #333;
+    font-weight: 600;
+}
+
+/* ============= 푸터 ============= */
+.home-footer {
+    background-color: #333;
+    color: white;
+    text-align: center;
+    padding: 20px;
+    margin-top: auto;
+    font-size: 14px;
+}
+
+/* ============= 반응형 디자인 ============= */
+@media (max-width: 768px) {
+    .header-content {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+    }
+
+    .header-right {
+        width: 100%;
+        justify-content: center;
+        flex-direction: column;
+    }
+
+    .home-header h1 {
+        font-size: 24px;
+    }
+
+    .welcome-section h2 {
+        font-size: 24px;
+    }
+
+    .features-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .home-main {
+        padding: 20px 10px;
+    }
+
+    .welcome-section,
+    .day2-section,
+    .feature-card {
+        padding: 20px;
+    }
+}
