@@ -62,7 +62,6 @@ export default function HomePage() {
                             <p>구매한 상품의 주문 현황을 확인하세요</p>
                         </div>
 
-                        {/* ✅ 수정: 판매 통계 카드 클릭 시 /sales-stats로 이동하는 로직 추가 */}
                         <div
                             className="feature-card"
                             onClick={() => navigate('/sales-stats')}
@@ -72,7 +71,12 @@ export default function HomePage() {
                             <p>판매자라면 판매 통계를 확인하세요</p>
                         </div>
 
-                        <div className="feature-card">
+                        {/* ✅ 수정: 클릭 이벤트와 커서 스타일 추가 */}
+                        <div
+                            className="feature-card"
+                            onClick={() => navigate('/review-management')}
+                            style={{ cursor: 'pointer', border: '1px solid #ddd' }}
+                        >
                             <h4>⭐ 리뷰 관리</h4>
                             <p>리뷰를 작성하고 관리하세요</p>
                         </div>
@@ -86,6 +90,7 @@ export default function HomePage() {
                         <li>✅ <strong>상품 목록 페이지 연결</strong> (완료)</li>
                         <li>✅ <strong>주문 내역 조회</strong> (완료)</li>
                         <li>✅ <strong>판매 통계 대시보드</strong> (완료)</li>
+                        <li>⏳ <strong>상품 리뷰 관리</strong> (진행 중)</li>
                     </ul>
                 </div>
             </main>
