@@ -36,7 +36,7 @@ public class OrderService {
         return orderRepository.findByUserOrderByOrderDateDesc(user);
     }
 
-    // ✅ 추가 및 수정: 주문 취소 전용 로직
+    // ✅ 수정된 로직: 상태 변경이 아닌 실제 DB 삭제
     @Transactional
     public void cancelOrder(Long orderId, User user) {
         Order order = orderRepository.findById(orderId)
@@ -47,7 +47,8 @@ public class OrderService {
             throw new IllegalStateException("본인의 주문만 취소할 수 있습니다.");
         }
 
-        order.setStatus("CANCELLED");
+        // ✅ DB에서 실제 데이터 삭제
+        orderRepository.delete(order);
     }
 
     @Transactional

@@ -41,12 +41,13 @@ public class OrderController {
         return ResponseEntity.ok(responses);
     }
 
-    // ✅ 추가: 주문 취소 API
-    @PatchMapping("/{orderId}/cancel")
+    // ✅ 수정: PATCH 대신 DELETE를 사용하여 물리적 삭제 처리
+    @DeleteMapping("/{orderId}")
     public ResponseEntity<Void> cancelOrder(
             @AuthenticationPrincipal String userEmail,
             @PathVariable Long orderId) {
         User user = userService.findByEmail(userEmail);
+        // OrderService에서 실제 delete를 수행하도록 이미 수정됨
         orderService.cancelOrder(orderId, user);
         return ResponseEntity.ok().build();
     }

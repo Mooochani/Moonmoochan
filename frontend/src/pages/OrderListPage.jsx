@@ -23,19 +23,25 @@ const OrderListPage = () => {
       });
   };
 
-  // ✅ 총 구매 비용 계산 (취소된 주문 제외)
-  const totalAmount = orders
-    .filter(o => o.status !== 'CANCELLED')
-    .reduce((acc, cur) => acc + cur.totalPrice, 0);
+  // ✅ [수정] 메모리에 남아있는 주문들로만 총 금액 계산
+  // 이제 리스트에서 삭제되면 이 값도 자동으로 즉시 줄어듭니다.
+  const totalAmount = orders.reduce((acc, cur) => acc + cur.totalPrice, 0);
 
-  // ✅ 주문 취소 처리
+  // ✅ [수정] 주문 삭제 처리 로직
   const handleCancel = async (orderId) => {
-    if (!window.confirm("정말 주문을 취소하시겠습니까?")) return;
+    if (!window.confirm("정말 주문을 취소하시겠습니까? 취소 시 목록에서 완전히 삭제됩니다.")) return;
     try {
-      await api.patch(`/orders/${orderId}/cancel`);
-      alert("취소가 완료되었습니다.");
-      fetchOrders(); // 데이터 갱신
+      // 1. 서버에 삭제(Delete) 요청 (기존 patch에서 변경)
+      await api.delete(`/orders/${orderId}`);
+
+      alert("주문이 취소(삭제)되었습니다.");
+
+      // 2. ✅ 핵심: 화면 메모리(State)에서 즉시 제거
+      // 서버에서 다시 데이터를 받아오지 않아도 화면이 즉시 갱신되며 총액이 정상화됩니다.
+      setOrders(prevOrders => prevOrders.filter(order => order.id !== orderId));
+
     } catch (err) {
+      console.error(err);
       alert("취소 처리 중 오류가 발생했습니다.");
     }
   };
@@ -50,13 +56,13 @@ const OrderListPage = () => {
         <h1 style={{ fontSize: '2.2rem', marginBottom: '20px', color: '#333' }}>📜 내 주문 관리</h1>
         <div style={{ display: 'flex', justifyContent: 'center', gap: '15px' }}>
           <button onClick={() => navigate('/')} style={navBtnStyle}>🏠 홈으로</button>
-          <button onClick={() => navigate('/products')} style={{...navBtnStyle, backgroundColor: '#00c73c', color: '#white', border: 'none'}}>계속 쇼핑하기</button>
+          <button onClick={() => navigate('/products')} style={{...navBtnStyle, backgroundColor: '#00c73c', color: 'white', border: 'none'}}>계속 쇼핑하기</button>
         </div>
       </div>
 
       {/* 2️⃣ 총 결제 금액 요약 섹션 */}
       <div style={{ backgroundColor: '#fdfdfd', border: '1px solid #eee', borderRadius: '15px', padding: '25px', marginBottom: '30px', textAlign: 'center', boxShadow: '0 2px 10px rgba(0,0,0,0.03)' }}>
-        <p style={{ margin: 0, color: '#888', fontSize: '1rem' }}>현재까지 총 주문 금액</p>
+        <p style={{ margin: 0, color: '#888', fontSize: '1rem' }}>현재 보유 중인 총 주문 금액</p>
         <h2 style={{ margin: '10px 0 0 0', color: '#27ae60', fontSize: '2rem' }}>{totalAmount.toLocaleString()}원</h2>
       </div>
 
@@ -71,34 +77,31 @@ const OrderListPage = () => {
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              backgroundColor: order.status === 'CANCELLED' ? '#f9f9f9' : '#fff'
+              backgroundColor: '#fff' // 삭제할 것이므로 취소 상태 배경은 제거
             }}>
-              <div style={{ opacity: order.status === 'CANCELLED' ? 0.5 : 1 }}>
+              <div>
                 <h3 style={{ margin: '0 0 5px 0' }}>{order.productName}</h3>
                 <p style={{ margin: 0, fontSize: '0.9rem', color: '#999' }}>
                   {new Date(order.orderDate).toLocaleDateString()} | {order.quantity}개
                 </p>
                 <span style={{
                   display: 'inline-block', marginTop: '10px', padding: '4px 10px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 'bold',
-                  backgroundColor: order.status === 'CANCELLED' ? '#f5f5f5' : '#e8f5e9',
-                  color: order.status === 'CANCELLED' ? '#999' : '#2e7d32'
+                  backgroundColor: '#e8f5e9', color: '#2e7d32'
                 }}>
-                  {order.status === 'CANCELLED' ? '취소완료' : '결제완료'}
+                  결제완료
                 </span>
               </div>
 
               <div style={{ textAlign: 'right' }}>
-                <p style={{ fontWeight: 'bold', fontSize: '1.2rem', margin: '0 0 10px 0', color: order.status === 'CANCELLED' ? '#bbb' : '#333' }}>
+                <p style={{ fontWeight: 'bold', fontSize: '1.2rem', margin: '0 0 10px 0', color: '#333' }}>
                   {order.totalPrice.toLocaleString()}원
                 </p>
-                {order.status !== 'CANCELLED' && (
-                  <button
+                <button
                     onClick={() => handleCancel(order.id)}
                     style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid #ff4d4f', color: '#ff4d4f', backgroundColor: '#fff', cursor: 'pointer', fontSize: '0.85rem' }}
-                  >
+                >
                     취소하기
-                  </button>
-                )}
+                </button>
               </div>
             </div>
           ))
