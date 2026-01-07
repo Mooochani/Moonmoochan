@@ -5,7 +5,8 @@ import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import HomePage from './pages/HomePage';
 import ProductPage from './pages/ProductPage';
-import OrderListPage from './pages/OrderListPage'; // ✅ 1. 추가됨
+import OrderListPage from './pages/OrderListPage';
+import SalesStatsPage from './pages/SalesStatsPage'; // ✅ 판매 통계 페이지 불러오기 추가
 import './App.css';
 
 // ✅ 보호된 라우트 설정
@@ -47,12 +48,20 @@ function AppRoutes() {
                     </ProtectedRoute>
                 }
             />
-            {/* ✅ 2. 주문 관리 라우트 추가 (보호된 라우트 적용) */}
             <Route
                 path="/orders"
                 element={
                     <ProtectedRoute>
                         <OrderListPage />
+                    </ProtectedRoute>
+                }
+            />
+            {/* ✅ 판매 통계 라우트 추가 (보호된 라우트 적용) */}
+            <Route
+                path="/sales-stats"
+                element={
+                    <ProtectedRoute>
+                        <SalesStatsPage />
                     </ProtectedRoute>
                 }
             />

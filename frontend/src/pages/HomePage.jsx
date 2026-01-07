@@ -52,7 +52,7 @@ export default function HomePage() {
                             <h4>🛍️ 상품 조회</h4>
                             <p>판매 중인 모든 상품을 확인하세요</p>
                         </div>
-                        {/* ✅ 수정: 주문 관리 카드 클릭 시 이동 로직 추가 */}
+
                         <div
                             className="feature-card"
                             onClick={() => navigate('/orders')}
@@ -61,10 +61,17 @@ export default function HomePage() {
                             <h4>📦 주문 관리</h4>
                             <p>구매한 상품의 주문 현황을 확인하세요</p>
                         </div>
-                        <div className="feature-card">
+
+                        {/* ✅ 수정: 판매 통계 카드 클릭 시 /sales-stats로 이동하는 로직 추가 */}
+                        <div
+                            className="feature-card"
+                            onClick={() => navigate('/sales-stats')}
+                            style={{ cursor: 'pointer', border: '1px solid #ddd' }}
+                        >
                             <h4>💰 판매 통계</h4>
                             <p>판매자라면 판매 통계를 확인하세요</p>
                         </div>
+
                         <div className="feature-card">
                             <h4>⭐ 리뷰 관리</h4>
                             <p>리뷰를 작성하고 관리하세요</p>
@@ -78,7 +85,7 @@ export default function HomePage() {
                         <li>✅ <strong>회원가입 & 로그인</strong> (완료)</li>
                         <li>✅ <strong>상품 목록 페이지 연결</strong> (완료)</li>
                         <li>✅ <strong>주문 내역 조회</strong> (완료)</li>
-                        <li>⏳ 주문 상태 관리 (진행 예정)</li>
+                        <li>✅ <strong>판매 통계 대시보드</strong> (완료)</li>
                     </ul>
                 </div>
             </main>
