@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 @Builder
 public class OrderResponse {
     private Long id;
+    private Long productId; // ✅ 상품 ID 필드 추가
     private String productName;
     private Integer quantity;
     private Long totalPrice;
@@ -19,6 +20,7 @@ public class OrderResponse {
     public static OrderResponse from(Order order) {
         return OrderResponse.builder()
                 .id(order.getId())
+                .productId(order.getProduct().getId()) // ✅ 엔티티에서 ID 추출
                 .productName(order.getProduct().getName())
                 .quantity(order.getQuantity())
                 .totalPrice(order.getTotalPrice())

@@ -11,4 +11,6 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
 
     // 특정 상품의 리뷰 개수 세기
     long countByProductId(Long productId);
+
+    boolean existsByOrderId(Long orderId);
 }
