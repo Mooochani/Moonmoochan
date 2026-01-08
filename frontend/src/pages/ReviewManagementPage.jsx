@@ -16,6 +16,11 @@ const ReviewManagementPage = () => {
     const [rating, setRating] = useState(5);
     const [loading, setLoading] = useState(true);
 
+    // ✅ 수정 로직을 위한 상태 추가
+    const [editingReviewId, setEditingReviewId] = useState(null);
+    const [editContent, setEditContent] = useState('');
+    const [editRating, setEditRating] = useState(5);
+
     useEffect(() => {
         fetchProducts();
         fetchReviews();
@@ -78,6 +83,36 @@ const ReviewManagementPage = () => {
             setContent('');
         } catch (err) {
             alert(err.response?.data?.message || "리뷰 등록 중 오류가 발생했습니다.");
+        }
+    };
+
+    // ✅ 수정 모드 진입
+    const startEdit = (review) => {
+        setEditingReviewId(review.id);
+        setEditContent(review.content);
+        setEditRating(review.rating);
+    };
+
+    // ✅ 수정 취소
+    const cancelEdit = () => {
+        setEditingReviewId(null);
+        setEditContent('');
+        setEditRating(5);
+    };
+
+    // ✅ 수정 처리 (PUT)
+    const handleUpdate = async (reviewId) => {
+        if (!editContent.trim()) return alert("내용을 입력해주세요.");
+        try {
+            await api.put(`/reviews/${reviewId}`, {
+                content: editContent,
+                rating: editRating
+            });
+            alert("리뷰가 수정되었습니다.");
+            setEditingReviewId(null);
+            fetchReviews();
+        } catch (err) {
+            alert(err.response?.data?.message || "수정 권한이 없거나 오류가 발생했습니다.");
         }
     };
 
@@ -153,20 +188,49 @@ const ReviewManagementPage = () => {
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                             {reviews.map(r => (
                                 <div key={r.id} style={reviewCardStyle}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '15px' }}>
-                                        <div>
-                                            <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#111827' }}>{r.userName}</div>
-                                            <div style={{ fontSize: '0.85rem', color: '#6b7280', marginTop: '2px' }}>{r.productName}</div>
+                                    {editingReviewId === r.id ? (
+                                        // ✅ 수정 모드 UI
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                <span style={{ fontWeight: 'bold' }}>리뷰 수정 중...</span>
+                                                <select
+                                                    value={editRating}
+                                                    onChange={(e) => setEditRating(Number(e.target.value))}
+                                                    style={{ ...ratingSelectStyle, backgroundColor: '#f3f4f6', padding: '5px 10px', borderRadius: '8px' }}
+                                                >
+                                                    {[5,4,3,2,1].map(n => <option key={n} value={n}>{n}점 {"⭐".repeat(n)}</option>)}
+                                                </select>
+                                            </div>
+                                            <textarea
+                                                value={editContent}
+                                                onChange={(e) => setEditContent(e.target.value)}
+                                                style={{ ...textareaStyle, height: '100px', border: '2px solid #3b82f6' }}
+                                            />
+                                            <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+                                                <button onClick={cancelEdit} style={{ ...deleteBtnStyle, color: '#6b7280', borderColor: '#d1d5db' }}>취소</button>
+                                                <button onClick={() => handleUpdate(r.id)} style={{ ...submitBtnStyle, padding: '8px 20px', fontSize: '0.9rem', backgroundColor: '#3b82f6' }}>수정 완료</button>
+                                            </div>
                                         </div>
-                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '5px' }}>
-                                            <div style={{ color: '#fbbf24', fontSize: '1.1rem' }}>{"⭐".repeat(r.rating)}</div>
-                                            <div style={{ fontSize: '0.8rem', color: '#9ca3af' }}>{new Date(r.createdAt).toLocaleDateString()}</div>
-                                        </div>
-                                    </div>
-                                    <div style={contentBoxStyle}>{r.content}</div>
-                                    <div style={{ textAlign: 'right', marginTop: '10px' }}>
-                                        <button onClick={() => handleDelete(r.id)} style={deleteBtnStyle}>삭제</button>
-                                    </div>
+                                    ) : (
+                                        // ✅ 일반 모드 UI
+                                        <>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '15px' }}>
+                                                <div>
+                                                    <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#111827' }}>{r.userName}</div>
+                                                    <div style={{ fontSize: '0.85rem', color: '#6b7280', marginTop: '2px' }}>{r.productName}</div>
+                                                </div>
+                                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '5px' }}>
+                                                    <div style={{ color: '#fbbf24', fontSize: '1.1rem' }}>{"⭐".repeat(r.rating)}</div>
+                                                    <div style={{ fontSize: '0.8rem', color: '#9ca3af' }}>{new Date(r.createdAt).toLocaleDateString()}</div>
+                                                </div>
+                                            </div>
+                                            <div style={contentBoxStyle}>{r.content}</div>
+                                            <div style={{ textAlign: 'right', marginTop: '10px', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                                                <button onClick={() => startEdit(r)} style={{ ...deleteBtnStyle, color: '#3b82f6', borderColor: '#3b82f6' }}>수정</button>
+                                                <button onClick={() => handleDelete(r.id)} style={deleteBtnStyle}>삭제</button>
+                                            </div>
+                                        </>
+                                    )}
                                 </div>
                             ))}
                         </div>
@@ -174,37 +238,40 @@ const ReviewManagementPage = () => {
                         <div style={emptyBoxStyle}>아직 작성된 리뷰가 없습니다.</div>
                     )}
                 </div>
+
+                {/* 홈으로 가기 버튼 섹션 */}
+                <div style={{ textAlign: 'center', marginTop: '50px', marginBottom: '50px' }}>
+                    <button
+                        onClick={() => navigate('/')}
+                        style={{
+                            padding: '12px 40px',
+                            borderRadius: '30px',
+                            border: '2px solid #00c73c',
+                            cursor: 'pointer',
+                            backgroundColor: '#fff',
+                            color: '#00c73c',
+                            fontSize: '1rem',
+                            fontWeight: 'bold',
+                            transition: 'all 0.2s'
+                        }}
+                        onMouseEnter={(e) => {
+                            e.target.style.backgroundColor = '#00c73c';
+                            e.target.style.color = '#fff';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.target.style.backgroundColor = '#fff';
+                            e.target.style.color = '#00c73c';
+                        }}
+                    >
+                        🏠 홈으로 돌아가기
+                    </button>
+                </div>
             </div>
-                  {/* 3️⃣ 최하단 홈으로 가기 버튼 (HomePage 디자인 통일) */}
-                  <button
-                    onClick={() => navigate('/')}
-                    style={{
-                      padding: '12px 40px',
-                      borderRadius: '30px',
-                      border: '2px solid #00c73c',
-                      cursor: 'pointer',
-                      backgroundColor: '#fff',
-                      color: '#00c73c',
-                      fontSize: '1rem',
-                      fontWeight: 'bold',
-                      transition: 'all 0.2s'
-                    }}
-                    onMouseEnter={(e) => {
-                        e.target.style.backgroundColor = '#00c73c';
-                        e.target.style.color = '#fff';
-                    }}
-                    onMouseLeave={(e) => {
-                        e.target.style.backgroundColor = '#fff';
-                        e.target.style.color = '#00c73c';
-                    }}
-                  >
-                    🏠 홈으로 돌아가기
-                  </button>
         </div>
     );
 };
 
-// --- 스타일 가이드 ---
+// --- 스타일 가이드 (기존과 동일) ---
 const filterContainerStyle = { marginBottom: '30px', padding: '25px', backgroundColor: '#ffffff', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', border: '1px solid #e5e7eb' };
 const selectStyle = { padding: '12px 20px', borderRadius: '12px', border: '1px solid #d1d5db', minWidth: '300px', fontSize: '1rem', outline: 'none', appearance: 'none', backgroundColor: '#f3f4f6' };
 const writeBoxStyle = { padding: '30px', backgroundColor: '#ecfdf5', borderRadius: '20px', border: '2px solid #10b981', marginBottom: '40px', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' };

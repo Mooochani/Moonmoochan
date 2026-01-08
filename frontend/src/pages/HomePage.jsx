@@ -52,7 +52,7 @@ export default function HomePage() {
                         </div>
                         <div className="feature-card" onClick={() => navigate('/review-management')}>
                             <h4>⭐ 리뷰 관리</h4>
-                            <p>다른 사람들의 구매 후기도{' '}확인해보세요</p>
+                            <p>영무스토어 고객님들이 증명하는 리얼 리뷰</p>
                         </div>
                     </div>
                 </div>

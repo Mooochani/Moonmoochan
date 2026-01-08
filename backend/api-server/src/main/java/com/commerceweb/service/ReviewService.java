@@ -114,4 +114,23 @@ public class ReviewService {
 
         reviewRepository.delete(review);
     }
+
+    @Transactional
+    public ReviewDto updateReview(Long reviewId, String content, Integer rating, Long currentUserId) {
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new RuntimeException("리뷰를 찾을 수 없습니다."));
+
+        // ✅ 중요: 리뷰 작성자의 ID와 현재 로그인한 유저의 ID 비교
+        if (!review.getUser().getId().equals(currentUserId)) {
+            throw new RuntimeException("본인이 작성한 리뷰만 수정할 수 있습니다.");
+        }
+
+        review.setContent(content);
+        review.setRating(rating);
+
+        // 별점 갱신 로직 (기존에 만드신 메서드 활용)
+        updateProductRating(review.getProduct());
+
+        return convertToDto(review);
+    }
 }
