@@ -1,54 +1,54 @@
 version: '3.8'
 
 services:
-  # 데이터베이스 서버
   postgres:
     image: postgres:15-alpine
     container_name: commerceweb-postgres
+    restart: always  # 서버 재부팅 시 자동 실행
     environment:
-      POSTGRES_DB: commerceweb
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 56678
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - postgres-data:/var/lib/postgresql/data
+    # 외부 노출이 필요 없다면 포트 매핑을 제거하거나 내부용으로만 유지하세요.
     ports:
       - "5433:5432"
 
-  # 데이터 저장소
   redis:
     image: redis:7-alpine
     container_name: commerceweb-redis
+    restart: always
     ports:
       - "6379:6379"
 
-  # 백엔드 서버
   backend:
     build:
       context: ./backend/api-server
       dockerfile: Dockerfile
     container_name: commerceweb-backend
+    restart: always
     environment:
-      SPRING_PROFILES_ACTIVE: prod
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/commerceweb
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: 56678
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
       SPRING_REDIS_HOST: redis
       SPRING_REDIS_PORT: 6379
-      # 자바 코드의 ${jwt.secret}과 ${jwt.expiration}에 매핑됩니다.
-      JWT_SECRET: "my_custom_secret_key_for_commerce_web_project_123456"
-      JWT_EXPIRATION: 86400000
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION: ${JWT_EXPIRATION}
     depends_on:
       - postgres
       - redis
     ports:
       - "8080:8080"
 
-  # 프론트엔드 서버
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
     container_name: commerceweb-frontend
+    restart: always
     depends_on:
       - backend
     ports:
