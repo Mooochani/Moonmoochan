@@ -1,29 +1,41 @@
-import React, { useEffect, useState, useMemo } from 'react'; // ✅ useMemo 추가
+import React, { useEffect, useState, useMemo } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext'; // ✅ AuthContext 추가
 
 const SalesStatsPage = () => {
+    const { user } = useAuth(); // ✅ 유저 정보 및 권한 가져오기
     const [stats, setStats] = useState([]);
-    const [loading, setLoading] = useState(true); // ✅ 로딩 상태 추가
+    const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
 
     useEffect(() => {
+        // ✅ [권한 체크] 판매자가 아니면 접근 차단
+        if (!user || user.role !== 'SELLER') {
+            alert("⚠️ 판매자 전용 페이지입니다. 구매자는 접근할 수 없습니다.");
+            navigate('/');
+            return;
+        }
+
         axios.get('http://localhost:8080/api/sales/stats')
             .then(response => {
                 setStats(response.data || []);
-                setLoading(false); // 데이터 로드 완료
+                setLoading(false);
             })
             .catch(error => {
                 console.error("데이터 로딩 에러:", error);
                 setLoading(false);
             });
-    }, []);
+    }, [user, navigate]);
 
-    // ✅ useMemo를 사용하여 stats가 변경될 때만 합계를 다시 계산합니다.
-    // 처음 진입 시 0원이 잠깐 뜨는 현상을 방지하고 최신 데이터를 보장합니다.
     const totalRevenue = useMemo(() => {
         return stats.reduce((acc, curr) => acc + (Number(curr.totalSales) || 0), 0);
     }, [stats]);
+
+    // ✅ 권한이 없는 유저에게 컴포넌트 내용을 노출하지 않기 위해 리턴
+    if (!user || user.role !== 'SELLER') {
+        return null;
+    }
 
     return (
         <div style={{ padding: '40px', backgroundColor: '#f4f7f6', minHeight: '100vh', fontFamily: "'Noto Sans KR', sans-serif" }}>
@@ -31,7 +43,6 @@ const SalesStatsPage = () => {
 
                 <h2 style={{ textAlign: 'center', marginBottom: '30px', color: '#2c3e50' }}>📊 판매 통계 대시보드</h2>
 
-                {/* 총 매출액 카드 */}
                 <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '40px' }}>
                     <div style={{
                         backgroundColor: '#fff',
@@ -44,13 +55,11 @@ const SalesStatsPage = () => {
                     }}>
                         <p style={{ color: '#7f8c8d', fontSize: '18px', marginBottom: '10px' }}>총 누적 매출액</p>
                         <h1 style={{ color: '#27ae60', margin: '0', fontSize: '42px', fontWeight: 'bold' }}>
-                            {/* 로딩 중일 때는 '계산 중...' 혹은 '-' 표시 */}
                             {loading ? "계산 중..." : `${totalRevenue.toLocaleString()}원`}
                         </h1>
                     </div>
                 </div>
 
-                {/* 상세 내역 테이블 */}
                 <div style={{ backgroundColor: '#fff', borderRadius: '15px', boxShadow: '0 4px 15px rgba(0,0,0,0.05)', overflow: 'hidden', marginBottom: '40px' }}>
                     <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                         <thead>
@@ -82,7 +91,6 @@ const SalesStatsPage = () => {
                     </table>
                 </div>
 
-                {/* 홈으로 가기 버튼 */}
                 <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
                     <button
                         onClick={() => navigate('/')}

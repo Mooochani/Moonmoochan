@@ -166,7 +166,7 @@ const navBtnStyle = {
   borderRadius: '12px',
   border: '2px solid #eee',
   backgroundColor: '#fff',
-  color: '#666',
+  color: '#00c73c',
   cursor: 'pointer',
   fontWeight: 'bold',
   fontSize: '1rem',
