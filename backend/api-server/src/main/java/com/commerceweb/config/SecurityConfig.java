@@ -22,44 +22,35 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable())
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .csrf(csrf -> csrf.disable()) // ✅ POST 요청을 위해 CSRF 비활성화
+                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // ✅ 프론트엔드 통신 허용
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-                // 기본 로그인/기본 인증 끄기
-                .formLogin(form -> form.disable())
-                .httpBasic(basic -> basic.disable())
-
-                // 세션 정책 (JWT 사용을 위해 STATELESS 설정)
-                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-
-                // 권한 설정
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
-                        .requestMatchers("/api/auth/**").permitAll()
+                        // 1️⃣ OPTIONS 요청 전면 허용 (CORS Preflight 해결)
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                        // ✅ 판매 통계 API 접근 허용
-                        .requestMatchers("/api/sales/**").permitAll()
+                        // 2️⃣ 누구나 접근 가능한 경로
+                        .requestMatchers("/api/auth/**", "/api/products/**").permitAll()
+                        .requestMatchers("/api/reviews/**").permitAll() // ✅ 리뷰는 현재 전면 허용 상태
 
-                        // ✅ 리뷰 API 접근 허용 (새로 추가됨)
-                        .requestMatchers("/api/reviews/**").permitAll()
+                        // 3️⃣ ✅ 판매자(SELLER) 전용 경로 명시
+                        // 필터에서 "ROLE_SELLER"로 변환하므로 여기선 "SELLER"만 작성
+                        .requestMatchers("/api/sales/**").hasRole("SELLER")
+                        .requestMatchers("/api/seller/**").hasRole("SELLER")
 
-                        .anyRequest().authenticated() // 주문(/api/orders) 등은 인증 필요
+                        // 4️⃣ 그 외 모든 요청은 로그인(인증) 필요
+                        .anyRequest().authenticated()
                 )
-
-                // 핵심: UsernamePasswordAuthenticationFilter 실행 전에
-                // 우리가 만든 jwtAuthenticationFilter를 먼저 실행하도록 설정
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-
         return http.build();
     }
 
-    // BCryptPasswordEncoder Bean 등록
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder(10);
     }
 
-    // CORS 설정
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();

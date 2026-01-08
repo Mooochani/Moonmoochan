@@ -10,8 +10,7 @@ import com.commerceweb.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.security.access.AccessDeniedException; // ✅ 추가
-
+import org.springframework.security.access.AccessDeniedException;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -25,22 +24,22 @@ public class ReviewService {
     private final UserRepository userRepository;
 
     @Transactional
-    public ReviewDto createReview(ReviewDto reviewDto) {
+    public ReviewDto createReview(ReviewDto reviewDto, User user) { // ✅ User 객체를 직접 받도록 수정
+        // 1. 상품 존재 확인
         Product product = productRepository.findById(reviewDto.getProductId())
                 .orElseThrow(() -> new RuntimeException("상품을 찾을 수 없습니다."));
-        User user = userRepository.findById(reviewDto.getUserId())
-                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
 
-        // 1. 리뷰 엔티티 생성 및 저장
+        // 2. 리뷰 엔티티 생성 및 저장 (전달받은 user 객체 사용)
         Review review = Review.builder()
                 .product(product)
-                .user(user)
+                .user(user) // ✅ DTO에서 꺼내지 않고 컨트롤러가 넘겨준 user 사용
                 .content(reviewDto.getContent())
                 .rating(reviewDto.getRating())
                 .build();
+
         reviewRepository.save(review);
 
-        // 2. 상품의 평균 별점 및 리뷰 개수 업데이트
+        // 3. 상품의 평균 별점 및 리뷰 개수 업데이트
         updateProductRating(product);
 
         return convertToDto(review);
@@ -62,7 +61,7 @@ public class ReviewService {
 
         product.setAverageRating(average);
         product.setRatingCount((long) reviews.size());
-        productRepository.save(product); // 변경된 별점 정보 저장
+        productRepository.save(product);
     }
 
     private ReviewDto convertToDto(Review review) {
@@ -88,5 +87,8 @@ public class ReviewService {
         }
 
         reviewRepository.delete(review);
+
+        // 삭제 후 별점 재계산
+        updateProductRating(review.getProduct());
     }
 }
