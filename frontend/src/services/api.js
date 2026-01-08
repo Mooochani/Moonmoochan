@@ -1,7 +1,8 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://localhost:8080/api',
+  // ✅ 로컬호스트를 AWS 서버 IP로 변경했습니다.
+  baseURL: 'http://13.236.117.206:8080/api',
   headers: { 'Content-Type': 'application/json' },
 });
 
