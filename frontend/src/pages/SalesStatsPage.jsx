@@ -1,23 +1,24 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import axios from 'axios';
+// import axios from 'axios'; // ❌ 삭제
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext'; // ✅ AuthContext 추가
+import { useAuth } from '../context/AuthContext';
+import api from '../services/api'; // ✅ 추가: 공통 API 설정 사용
 
 const SalesStatsPage = () => {
-    const { user } = useAuth(); // ✅ 유저 정보 및 권한 가져오기
+    const { user } = useAuth();
     const [stats, setStats] = useState([]);
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
 
     useEffect(() => {
-        // ✅ [권한 체크] 판매자가 아니면 접근 차단
         if (!user || user.role !== 'SELLER') {
             alert("⚠️ 판매자 전용 페이지입니다. 구매자는 접근할 수 없습니다.");
             navigate('/');
             return;
         }
 
-        axios.get('http://localhost:8080/api/sales/stats')
+        // ✅ 수정: api 객체를 사용하여 서버 IP(13.236.117.206)를 자동으로 참조하게 함
+        api.get('/sales/stats')
             .then(response => {
                 setStats(response.data || []);
                 setLoading(false);
@@ -32,7 +33,6 @@ const SalesStatsPage = () => {
         return stats.reduce((acc, curr) => acc + (Number(curr.totalSales) || 0), 0);
     }, [stats]);
 
-    // ✅ 권한이 없는 유저에게 컴포넌트 내용을 노출하지 않기 위해 리턴
     if (!user || user.role !== 'SELLER') {
         return null;
     }
@@ -76,7 +76,7 @@ const SalesStatsPage = () => {
                                     <tr key={index} style={{ borderBottom: '1px solid #f1f1f1', textAlign: 'center' }}>
                                         <td style={{ padding: '18px', fontWeight: '500', textAlign: 'left', paddingLeft: '30px' }}>{item.productName}</td>
                                         <td style={{ padding: '18px' }}>{item.totalQuantity}개</td>
-                                        <td style={{ padding: '18px', color: '#e74c3c', fontWeight: 'bold' }}>{item.totalSales.toLocaleString()}원</td>
+                                        <td style={{ padding: '18px', color: '#e74c3c', fontWeight: 'bold' }}>{(item.totalSales || 0).toLocaleString()}원</td>
                                         <td style={{ padding: '18px', color: '#f1c40f' }}>★ {item.averageRating?.toFixed(1) || '0.0'}</td>
                                     </tr>
                                 ))
