@@ -45,35 +45,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         // 2) 토큰 검증 + 인증 객체 세팅
         if (token != null && jwtProvider.validateToken(token)) {
-            try {
-                Long userId = Long.parseLong(jwtProvider.extractUserId(token));
-                User user = userRepository.findById(userId).orElse(null);
+            Long userId = Long.parseLong(jwtProvider.extractUserId(token));
 
-                if (user != null) {
-                    // ✅ [수정 포인트] Role 이름 처리 로직 강화
-                    String roleName = user.getRole().name();
-                    // 만약 DB의 Role 이름에 ROLE_ 이 안 붙어 있다면 붙여주고, 이미 있다면 그대로 사용
-                    if (!roleName.startsWith("ROLE_")) {
-                        roleName = "ROLE_" + roleName;
-                    }
+            User user = userRepository.findById(userId).orElse(null);
 
-                    List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(roleName));
+            if (user != null) {
+                // UserDetails 미구현이어도 동작하도록 권한을 직접 구성
+                List<SimpleGrantedAuthority> authorities =
+                        List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()));
 
-                    // principal은 email로 설정
-                    UsernamePasswordAuthenticationToken authentication =
-                            new UsernamePasswordAuthenticationToken(user.getEmail(), null, authorities);
+                // principal은 일단 email로 두는 게 관리/로그에 유리
+                UsernamePasswordAuthenticationToken authentication =
+                        new UsernamePasswordAuthenticationToken(user.getEmail(), null, authorities);
 
-                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-
-                    // SecurityContext에 인증 정보 저장
-                    SecurityContextHolder.getContext().setAuthentication(authentication);
-
-                    // 디버깅용 로그 (선택 사항)
-                    System.out.println("✅ 인증 성공: " + user.getEmail() + ", 권한: " + roleName);
-                }
-            } catch (Exception e) {
-                // 토큰 파싱 에러 시 컨텍스트 초기화
-                SecurityContextHolder.clearContext();
+                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         }
 

@@ -22,13 +22,16 @@ public class OrderService {
     public Order createOrder(User user, Long productId, Integer quantity) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new IllegalArgumentException("상품이 존재하지 않습니다."));
+
         Order order = Order.builder()
                 .user(user)
                 .product(product)
                 .quantity(quantity)
                 .totalPrice((long) (product.getPrice() * quantity))
-                .status("PAID")
+                .shippingAddress("기본 배송지") // 명시적 추가
+                .status("PAID")               // 명시적 추가
                 .build();
+
         return orderRepository.save(order);
     }
 

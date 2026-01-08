@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  # 데이터베이스 서버 (창고)
+  # 데이터베이스 서버
   postgres:
     image: postgres:15-alpine
     container_name: commerceweb-postgres
@@ -14,17 +14,16 @@ services:
     ports:
       - "5433:5432"
 
-  # 데이터 저장소 (보조 창고)
+  # 데이터 저장소
   redis:
     image: redis:7-alpine
     container_name: commerceweb-redis
     ports:
       - "6379:6379"
 
-  # 백엔드 서버 (주방)
+  # 백엔드 서버
   backend:
     build:
-      # 폴더 이름을 api-server로 바꾸셨다면 아래 경로가 정답입니다.
       context: ./backend/api-server
       dockerfile: Dockerfile
     container_name: commerceweb-backend
@@ -35,14 +34,16 @@ services:
       SPRING_DATASOURCE_PASSWORD: 56678
       SPRING_REDIS_HOST: redis
       SPRING_REDIS_PORT: 6379
-      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      # 자바 코드의 ${jwt.secret}과 ${jwt.expiration}에 매핑됩니다.
+      JWT_SECRET: "my_custom_secret_key_for_commerce_web_project_123456"
+      JWT_EXPIRATION: 86400000
     depends_on:
       - postgres
       - redis
     ports:
       - "8080:8080"
 
-  # 프론트엔드 서버 (홀)
+  # 프론트엔드 서버
   frontend:
     build:
       context: ./frontend
@@ -55,4 +56,3 @@ services:
 
 volumes:
   postgres-data:
-  redis-data:

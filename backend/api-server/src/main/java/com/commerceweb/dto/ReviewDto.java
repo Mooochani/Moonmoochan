@@ -10,8 +10,10 @@ import java.time.LocalDateTime;
 public class ReviewDto {
     private Long id;
     private Long productId;
+    private String productName; // ✅ 추가: 화면에 어떤 상품 리뷰인지 보여주기 위함
+    private Long orderId;
     private Long userId;
-    private String userName; // 화면에 작성자 이름을 보여주기 위함
+    private String userName;
     private String content;
     private Integer rating;
     private LocalDateTime createdAt;
