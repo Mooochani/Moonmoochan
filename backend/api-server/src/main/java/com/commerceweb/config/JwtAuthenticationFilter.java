@@ -23,43 +23,49 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtProvider jwtProvider;
     private final UserRepository userRepository;
 
+
     public JwtAuthenticationFilter(JwtProvider jwtProvider, UserRepository userRepository) {
         this.jwtProvider = jwtProvider;
         this.userRepository = userRepository;
     }
 
     @Override
-    protected void doFilterInternal(
-            HttpServletRequest request,
-            HttpServletResponse response,
-            FilterChain filterChain
-    ) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
 
-        // 1) Authorization 헤더에서 Bearer 토큰 추출
         String authHeader = request.getHeader("Authorization");
-        String token = null;
 
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            token = authHeader.substring(7);
-        }
+            String token = authHeader.substring(7);
 
-        // 2) 토큰 검증 + 인증 객체 세팅
-        if (token != null && jwtProvider.validateToken(token)) {
-            Long userId = Long.parseLong(jwtProvider.extractUserId(token));
+            if (jwtProvider.validateToken(token)) {
+                try {
+                    // 1. 기존에 확실히 존재하는 extractUserId 사용
+                    String userIdStr = jwtProvider.extractUserId(token);
+                    Long userId = Long.parseLong(userIdStr);
 
-            User user = userRepository.findById(userId).orElse(null);
+                    User user = userRepository.findById(userId).orElse(null);
 
-            if (user != null) {
-                // UserDetails 미구현이어도 동작하도록 권한을 직접 구성
-                List<SimpleGrantedAuthority> authorities =
-                        List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()));
+                    if (user != null) {
+                        // 2. 권한 강제 부여 (ROLE_CUSTOMER)
+                        // DB에 CUSTOMER라고 있든 ROLE_CUSTOMER라고 있든 상관없이 시큐리티용 권한 생성
+                        List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_CUSTOMER"));
 
-                // principal은 일단 email로 두는 게 관리/로그에 유리
-                UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(user.getEmail(), null, authorities);
+                        UsernamePasswordAuthenticationToken authentication =
+                                new UsernamePasswordAuthenticationToken(user.getEmail(), null, authorities);
+                        authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+                        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+                        System.out.println("✅ [DEBUG] 인증 성공: " + user.getEmail() + " (ROLE_CUSTOMER 권한 부여됨)");
+                    } else {
+                        System.out.println("❌ [DEBUG] DB에 유저 없음 (ID: " + userId + ")");
+                    }
+                } catch (Exception e) {
+                    System.out.println("❌ [DEBUG] 토큰 처리 중 오류: " + e.getMessage());
+                }
+            } else {
+                System.out.println("❌ [DEBUG] 유효하지 않은 토큰");
             }
         }
 

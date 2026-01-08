@@ -5,7 +5,7 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "orders") // order는 SQL 예약어라 보통 orders로 테이블명을 정합니다.
+@Table(name = "orders")
 @Getter @Setter
 @NoArgsConstructor
 @AllArgsConstructor
@@ -16,24 +16,46 @@ public class Order {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "buyer_id", nullable = false)
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "product_id")
+    @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 
     private Integer quantity;
 
+    // name을 total_amount에서 total_price로 변경 (DB 표준에 맞춤)
+    @Column(name = "total_price", nullable = false)
     private Long totalPrice;
 
-    private String status; // 예: "PENDING", "PAID", "SHIPPING", "DELIVERED", "CANCELLED"
+    private String status;
+
+    @Column(name = "shipping_address", nullable = false)
+    private String shippingAddress;
 
     private LocalDateTime orderDate;
 
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
     @PrePersist
     protected void onCreate() {
-        this.orderDate = LocalDateTime.now();
-        if (this.status == null) this.status = "PAID"; // 기본값 결제완료
+        LocalDateTime now = LocalDateTime.now();
+        this.orderDate = now;
+        this.createdAt = now;
+        this.updatedAt = now;
+
+        // @PrePersist에서 확실하게 기본값 할당
+        if (this.status == null) this.status = "PAID";
+        if (this.shippingAddress == null) this.shippingAddress = "기본 배송지";
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
     }
 }

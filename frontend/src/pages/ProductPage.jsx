@@ -23,12 +23,16 @@ const ProductPage = () => {
     if (!window.confirm("이 상품을 구매하시겠습니까?")) return;
 
     try {
+        // 2. 서버 데이터 전송 단계 (API Request)
+            // api.post: 설정된 axios 인스턴스를 사용해 '/orders' 엔드포인트로 POST 요청을 보냅니다.
+            // await: 서버에서 응답이 올 때까지 다음 줄로 넘어가지 않고 기다립니다.
       await api.post('/orders', {
-        productId: productId,
-        quantity: 1
+        productId: productId, // 구매할 상품의 고유 ID
+        quantity: 1           // 구매 수량 (여기서는 1개로 고정됨)
       });
 
       alert("주문이 성공적으로 완료되었습니다! 🎉");
+      // navigate: 주문 내역 페이지로 사용자를 이동시킵니다.
       navigate('/orders');
     } catch (error) {
       console.error("주문 실패:", error);
@@ -106,7 +110,12 @@ const ProductPage = () => {
                 </p>
 
                 <button
+                // 1. 이벤트 핸들러: 버튼을 클릭했을 때 실행될 동작을 정의합니다.
                   onClick={() => handleOrder(product.id)}
+                  /* - 익명 함수(() => ...)를 사용하여 클릭 시점에만 handleOrder가 실행되도록 합니다.
+                       - handleOrder 함수에 현재 상품의 고유 ID(product.id)를 인자로 전달합니다.
+                       - 이를 통해 서버에 '어떤 상품'을 주문할지 알려줄 수 있습니다.
+                    */
                   style={{
                     backgroundColor: '#00c73c',
                     color: 'white',

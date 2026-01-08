@@ -22,48 +22,51 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                // 1. CSRF 및 CORS 설정
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
-                // 기본 로그인/기본 인증 끄기
+                // 2. 세션 미사용 (JWT 방식)
                 .formLogin(form -> form.disable())
                 .httpBasic(basic -> basic.disable())
-
-                // 세션 정책 (JWT 사용을 위해 STATELESS 설정)
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-                // 권한 설정
+                // 3. 권한 설정
                 .authorizeHttpRequests(auth -> auth
+                        // ✅ [추가] 내부 에러 발생 시 리다이렉트되는 /error 경로는 누구나 접근 가능해야 함
+                        .requestMatchers("/error").permitAll()
+
+                        // 누구나 접근 가능한 경로
                         .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
-
-                        // ✅ 판매 통계 API 접근 허용
                         .requestMatchers("/api/sales/**").permitAll()
-
-                        // ✅ 리뷰 API 접근 허용 (새로 추가됨)
                         .requestMatchers("/api/reviews/**").permitAll()
 
-                        .anyRequest().authenticated() // 주문(/api/orders) 등은 인증 필요
+                        // ✅ [수정] 주문 관련 API 설정 강화
+                        // hasRole("CUSTOMER")는 내부적으로 "ROLE_CUSTOMER"가 있는지 확인합니다.
+                        .requestMatchers("/api/orders/**").hasAnyRole("CUSTOMER", "USER")
+
+                        // 그 외 모든 요청은 인증(로그인) 필요
+                        .anyRequest().authenticated()
                 )
 
-                // 핵심: UsernamePasswordAuthenticationFilter 실행 전에
-                // 우리가 만든 jwtAuthenticationFilter를 먼저 실행하도록 설정
+                // 4. 필터 체인 순서: JWT 필터를 먼저 실행
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
-    // BCryptPasswordEncoder Bean 등록
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder(10);
     }
 
-    // CORS 설정
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
+        // 프론트엔드 주소들 허용
+        config.addAllowedOriginPattern("http://localhost:*");
         config.addAllowedOrigin("http://localhost");
         config.addAllowedOrigin("http://localhost:3000");
         config.addAllowedOrigin("http://localhost:5173");

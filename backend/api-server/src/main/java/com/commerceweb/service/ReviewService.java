@@ -10,6 +10,8 @@ import com.commerceweb.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.access.AccessDeniedException; // ✅ 추가
+
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -73,5 +75,18 @@ public class ReviewService {
                 .rating(review.getRating())
                 .createdAt(review.getCreatedAt())
                 .build();
+    }
+
+    @Transactional
+    public void deleteReview(Long reviewId, User user) {
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new IllegalArgumentException("리뷰가 존재하지 않습니다."));
+
+        // 작성자 본인 확인
+        if (!review.getUser().getId().equals(user.getId())) {
+            throw new AccessDeniedException("본인의 리뷰만 삭제할 수 있습니다.");
+        }
+
+        reviewRepository.delete(review);
     }
 }

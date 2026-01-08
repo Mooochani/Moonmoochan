@@ -52,6 +52,31 @@ const ReviewManagementPage = () => {
             })
             .catch(err => alert("리뷰 등록 중 오류가 발생했습니다."));
     };
+    // ✅ 4. 리뷰 삭제 (취소) 기능 추가
+    const handleDeleteReview = async (reviewId) => {
+        if (!window.confirm("정말로 이 리뷰를 삭제하시겠습니까?")) return;
+
+        const token = localStorage.getItem('token');
+        if (!token) {
+            alert("로그인이 필요합니다.");
+            return navigate('/login');
+        }
+
+        try {
+            await axios.delete(`http://localhost:8080/api/reviews/${reviewId}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            alert("리뷰가 삭제되었습니다.");
+            fetchReviews(selectedProductId); // 목록 새로고침
+        } catch (error) {
+            console.error("리뷰 삭제 실패:", error);
+            if (error.response && error.response.status === 403) {
+                alert("본인이 작성한 리뷰만 삭제할 수 있습니다.");
+            } else {
+                alert("리뷰 삭제 중 오류가 발생했습니다.");
+            }
+        }
+    };
 
     return (
         <div style={{ padding: '40px', backgroundColor: '#f9f9f9', minHeight: '100vh', fontFamily: 'sans-serif' }}>
@@ -117,6 +142,24 @@ const ReviewManagementPage = () => {
                                 </div>
                                 <p style={{ margin: '5px 0', color: '#555' }}>{r.content}</p>
                                 <small style={{ color: '#aaa' }}>{new Date(r.createdAt).toLocaleDateString()}</small>
+                                {/* ✅ 삭제 버튼 추가 */}
+                                <button
+                                    onClick={() => handleDeleteReview(r.id)}
+                                    style={{
+                                        position: 'absolute',
+                                        right: '15px',
+                                        bottom: '15px',
+                                        backgroundColor: '#ff4d4d',
+                                        color: 'white',
+                                        border: 'none',
+                                        borderRadius: '4px',
+                                        padding: '5px 10px',
+                                        fontSize: '0.8rem',
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    삭제
+                                </button>
                             </div>
                         ))
                     )}
