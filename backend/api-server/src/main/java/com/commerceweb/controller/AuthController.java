@@ -27,31 +27,27 @@ public class AuthController {
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@RequestBody SignupRequest request) {
         try {
-            // 1️⃣ AuthService를 통한 회원가입 (Role 포함)
+            // 1️⃣ AuthService를 통한 회원가입 (Role 추가됨)
             User user = authService.signup(
                     request.getEmail(),
                     request.getPassword(),
                     request.getName(),
-                    request.getRole()
+                    request.getRole() // ✅ 프론트에서 넘어온 ROLE(SELLER/CUSTOMER) 전달
             );
 
             System.out.println("✅ 회원가입 완료: " + user.getEmail() + " (" + user.getRole() + ")");
 
-            // 2️⃣ JWT 토큰 생성 (수정: userId와 Role을 함께 전달)
-            // JwtProvider의 generateToken 메서드가 String을 두 개 받도록 수정되어야 합니다.
-            String token = jwtProvider.generateToken(
-                    String.valueOf(user.getId()),
-                    user.getRole().name()
-            );
-            System.out.println("✅ JWT 토큰 생성(Role 포함): " + token.substring(0, 20) + "...");
+            // 2️⃣ JWT 토큰 생성
+            String token = jwtProvider.generateToken(String.valueOf(user.getId()));
+            System.out.println("✅ JWT 토큰 생성: " + token.substring(0, 20) + "...");
 
-            // 3️⃣ 응답 DTO 반환
+            // 3️⃣ 응답 DTO 반환 (Role 정보 포함)
             AuthResponse response = new AuthResponse(
                     token,
                     user.getId(),
                     user.getEmail(),
                     user.getName(),
-                    user.getRole().name()
+                    user.getRole().name() // ✅ 프론트엔드 권한 체크를 위해 전송
             );
 
             return ResponseEntity.status(HttpStatus.CREATED)
@@ -76,20 +72,17 @@ public class AuthController {
 
             System.out.println("✅ 로그인 완료: " + user.getEmail() + " (" + user.getRole() + ")");
 
-            // 2️⃣ JWT 토큰 생성 (수정: userId와 Role을 함께 전달)
-            String token = jwtProvider.generateToken(
-                    String.valueOf(user.getId()),
-                    user.getRole().name()
-            );
-            System.out.println("✅ JWT 토큰 생성(Role 포함): " + token.substring(0, 20) + "...");
+            // 2️⃣ JWT 토큰 생성
+            String token = jwtProvider.generateToken(String.valueOf(user.getId()));
+            System.out.println("✅ JWT 토큰 생성: " + token.substring(0, 20) + "...");
 
-            // 3️⃣ 응답 DTO 반환
+            // 3️⃣ 응답 DTO 반환 (Role 정보 포함)
             AuthResponse response = new AuthResponse(
                     token,
                     user.getId(),
                     user.getEmail(),
                     user.getName(),
-                    user.getRole().name()
+                    user.getRole().name() // ✅ 로그인 성공 시 권한 정보를 줘야 판매 통계 페이지 접근 가능
             );
 
             return ResponseEntity.ok(response);

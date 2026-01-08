@@ -1,17 +1,13 @@
 package com.commerceweb.service;
 
 import com.commerceweb.dto.ReviewDto;
-import com.commerceweb.entity.Product;
-import com.commerceweb.entity.Review;
-import com.commerceweb.entity.User;
-import com.commerceweb.repository.ProductRepository;
-import com.commerceweb.repository.ReviewRepository;
-import com.commerceweb.repository.UserRepository;
+import com.commerceweb.entity.*;
+import com.commerceweb.repository.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.security.access.AccessDeniedException; // ✅ 추가
-
+import org.springframework.security.access.AccessDeniedException;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -22,53 +18,83 @@ public class ReviewService {
 
     private final ReviewRepository reviewRepository;
     private final ProductRepository productRepository;
-    private final UserRepository userRepository;
+    private final OrderRepository orderRepository;
 
     @Transactional
     public ReviewDto createReview(ReviewDto reviewDto) {
-        Product product = productRepository.findById(reviewDto.getProductId())
-                .orElseThrow(() -> new RuntimeException("상품을 찾을 수 없습니다."));
-        User user = userRepository.findById(reviewDto.getUserId())
-                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+        // 1. 주문 정보 조회
+        Order order = orderRepository.findById(reviewDto.getOrderId())
+                .orElseThrow(() -> new RuntimeException("주문 내역을 찾을 수 없습니다."));
 
-        // 1. 리뷰 엔티티 생성 및 저장
+        // 2. 권한 확인 (테이블 데이터의 buyer_id와 현재 요청 userId 비교)
+        if (!order.getUser().getId().equals(reviewDto.getUserId())) {
+            throw new RuntimeException("본인의 주문 내역에 대해서만 리뷰를 남길 수 있습니다.");
+        }
+
+        // 3. 중복 리뷰 체크
+        if (reviewRepository.existsByOrderId(reviewDto.getOrderId())) {
+            throw new RuntimeException("이미 이 주문에 대한 리뷰를 작성하셨습니다.");
+        }
+
+        // 4. 리뷰 엔티티 빌드 및 저장
         Review review = Review.builder()
-                .product(product)
-                .user(user)
+                .order(order)
+                .product(order.getProduct()) // DB 테이블 상 productId 자동 매칭
+                .user(order.getUser())       // DB 테이블 상 buyer_id 자동 매칭
                 .content(reviewDto.getContent())
                 .rating(reviewDto.getRating())
                 .build();
+
         reviewRepository.save(review);
 
-        // 2. 상품의 평균 별점 및 리뷰 개수 업데이트
-        updateProductRating(product);
+        // 5. 상품 평균 별점 업데이트 로직 호출
+        updateProductRating(order.getProduct());
 
         return convertToDto(review);
     }
 
+    @Transactional(readOnly = true)
     public List<ReviewDto> getReviewsByProduct(Long productId) {
+        // 상품 존재 여부 확인 전용 쿼리
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new RuntimeException("상품을 찾을 수 없습니다."));
+
         return reviewRepository.findByProductOrderByCreatedAtDesc(product)
                 .stream().map(this::convertToDto).collect(Collectors.toList());
     }
 
     private void updateProductRating(Product product) {
         List<Review> reviews = reviewRepository.findByProductOrderByCreatedAtDesc(product);
+
         double average = reviews.stream()
                 .mapToInt(Review::getRating)
                 .average()
                 .orElse(0.0);
 
-        product.setAverageRating(average);
+        // 소수점 1자리까지 반올림
+        double roundedAverage = Math.round(average * 10.0) / 10.0;
+
+        product.setAverageRating(roundedAverage);
         product.setRatingCount((long) reviews.size());
-        productRepository.save(product); // 변경된 별점 정보 저장
+
+        productRepository.save(product);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ReviewDto> getAllReviews() {
+        // 모든 리뷰를 최신순으로 조회
+        return reviewRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt"))
+                .stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
     }
 
     private ReviewDto convertToDto(Review review) {
         return ReviewDto.builder()
                 .id(review.getId())
                 .productId(review.getProduct().getId())
+                .productName(review.getProduct().getName()) // ✅ 상품명 매핑
+                .orderId(review.getOrder().getId())
                 .userId(review.getUser().getId())
                 .userName(review.getUser().getName())
                 .content(review.getContent())
@@ -82,7 +108,6 @@ public class ReviewService {
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new IllegalArgumentException("리뷰가 존재하지 않습니다."));
 
-        // 작성자 본인 확인
         if (!review.getUser().getId().equals(user.getId())) {
             throw new AccessDeniedException("본인의 리뷰만 삭제할 수 있습니다.");
         }

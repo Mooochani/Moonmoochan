@@ -16,7 +16,7 @@ public class JwtProviderTest {
     @Test
     public void testGenerateToken() {
         // 1️⃣ 토큰 생성 (수정: Role 인자 추가)
-        String token = jwtProvider.generateToken("user@example.com", "ROLE_CUSTOMER");
+        String token = jwtProvider.generateToken("user@example.com");
 
         // 2️⃣ 토큰이 null이 아닌지 확인
         assertNotNull(token, "Token should not be null");
@@ -30,7 +30,7 @@ public class JwtProviderTest {
     @Test
     public void testValidateToken() {
         // 1️⃣ 토큰 생성 (수정: Role 인자 추가)
-        String token = jwtProvider.generateToken("user@example.com", "ROLE_CUSTOMER");
+        String token = jwtProvider.generateToken("user@example.com");
 
         // 2️⃣ 토큰 검증
         boolean isValid = jwtProvider.validateToken(token);
@@ -44,7 +44,7 @@ public class JwtProviderTest {
     public void testExtractUserId() {
         // 1️⃣ 토큰 생성 (수정: Role 인자 추가)
         String userId = "user@example.com";
-        String token = jwtProvider.generateToken(userId, "ROLE_CUSTOMER");
+        String token = jwtProvider.generateToken(userId);
 
         // 2️⃣ userId 추출
         String extractedUserId = jwtProvider.extractUserId(token);
