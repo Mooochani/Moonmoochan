@@ -44,13 +44,17 @@ const ReviewManagementPage = () => {
             rating: rating
         };
 
-        axios.post('http://localhost:8080/api/reviews', reviewData)
+    axios.post('http://localhost:8080/api/reviews', reviewData)
             .then(() => {
                 alert("리뷰가 등록되었습니다!");
                 setContent('');
-                fetchReviews(selectedProductId); // 목록 새로고침
+                fetchReviews(selectedProductId);
             })
-            .catch(err => alert("리뷰 등록 중 오류가 발생했습니다."));
+            .catch(err => {
+                // ✅ 서버에서 보낸 에러 메시지(구매 여부 등)를 사용자에게 노출
+                const errorMessage = err.response?.data?.message || "리뷰 등록 중 오류가 발생했습니다.";
+                alert(errorMessage);
+            });
     };
     // ✅ 4. 리뷰 삭제 (취소) 기능 추가
     const handleDeleteReview = async (reviewId) => {
