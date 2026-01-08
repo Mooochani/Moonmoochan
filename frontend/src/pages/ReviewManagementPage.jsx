@@ -34,7 +34,6 @@ const ReviewManagementPage = () => {
         setLoading(true);
         try {
             let res;
-            // productId가 URL에 있으면 특정 상품 조회, 없으면 전체 조회
             if (productIdFromUrl && productIdFromUrl !== 'undefined') {
                 res = await api.get(`/reviews/product/${productIdFromUrl}`);
             } else {
@@ -50,7 +49,6 @@ const ReviewManagementPage = () => {
 
     const handleProductChange = (e) => {
         const selectedId = e.target.value;
-        // 필터 변경 시 orderId는 제거하고 productId만 유지하여 이동
         if (selectedId) {
             navigate(`/review-management?productId=${selectedId}`);
         } else {
@@ -60,8 +58,6 @@ const ReviewManagementPage = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
-        // 로직 점검: orderId가 없으면 백엔드에서 에러가 나므로 원천 차단
         if (!orderIdFromUrl || orderIdFromUrl === 'undefined') {
             return alert("주문 정보를 찾을 수 없습니다. 마이페이지에서 리뷰 작성을 시도해주세요.");
         }
@@ -69,7 +65,7 @@ const ReviewManagementPage = () => {
 
         const reviewData = {
             productId: Number(productIdFromUrl),
-            orderId: Number(orderIdFromUrl), // 이제 확실히 존재할 때만 실행됨
+            orderId: Number(orderIdFromUrl),
             content: content,
             rating: rating
         };
@@ -77,7 +73,6 @@ const ReviewManagementPage = () => {
         try {
             await api.post('/reviews', reviewData);
             alert("리뷰가 등록되었습니다!");
-            // 등록 후에는 '작성 모드'를 종료하기 위해 orderId 파라미터를 제거하고 목록으로 이동
             navigate(`/review-management?productId=${productIdFromUrl}`);
             fetchReviews();
             setContent('');
@@ -97,87 +92,129 @@ const ReviewManagementPage = () => {
         }
     };
 
-    if (loading) return <div style={{textAlign: 'center', marginTop: '50px'}}>데이터를 불러오는 중...</div>;
+    if (loading) return <div style={{textAlign: 'center', marginTop: '100px', fontSize: '1.2rem', color: '#666'}}>✨ 데이터를 불러오는 중입니다...</div>;
 
     return (
-        <div style={{ maxWidth: '800px', margin: '40px auto', padding: '0 20px' }}>
+        <div style={{ backgroundColor: '#f9fafb', minHeight: '100vh', padding: '40px 20px' }}>
+            <div style={{ maxWidth: '800px', margin: '0 auto' }}>
 
-            {/* 1. 상품 필터 섹션 */}
-            <div style={filterContainerStyle}>
-                <label style={{ fontWeight: 'bold' }}>🔍 리뷰 필터링: </label>
-                <select
-                    value={productIdFromUrl || ''}
-                    onChange={handleProductChange}
-                    style={selectStyle}
-                >
-                    <option value="">전체 리뷰 보기</option>
-                    {products.map(p => (
-                        <option key={p.id} value={p.id}>{p.name}</option>
-                    ))}
-                </select>
-            </div>
-
-            {/* 2. 리뷰 작성 폼 (orderId가 URL에 있을 때만 노출) */}
-            {orderIdFromUrl && orderIdFromUrl !== 'undefined' ? (
-                <div style={writeBoxStyle}>
-                    <h3>✍️ 상품 리뷰 작성</h3>
-                    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <span>평점 선택:</span>
-                            <select value={rating} onChange={(e) => setRating(Number(e.target.value))} style={{padding: '5px'}}>
-                                {[5,4,3,2,1].map(n => <option key={n} value={n}>{n}점 {"⭐".repeat(n)}</option>)}
-                            </select>
-                        </div>
-                        <textarea
-                            value={content}
-                            onChange={(e) => setContent(e.target.value)}
-                            placeholder="상품에 대한 솔직한 후기를 작성해주세요."
-                            style={{ height: '120px', padding: '12px', borderRadius: '5px', border: '1px solid #ddd' }}
-                        />
-                        <button type="submit" style={submitBtnStyle}>리뷰 등록 완료</button>
-                    </form>
+                {/* 1. 상품 필터 섹션 */}
+                <div style={filterContainerStyle}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '15px' }}>
+                        <span style={{ fontSize: '1.2rem' }}>🔍</span>
+                        <select
+                            value={productIdFromUrl || ''}
+                            onChange={handleProductChange}
+                            style={selectStyle}
+                        >
+                            <option value="">전체 리뷰 보기</option>
+                            {products.map(p => (
+                                <option key={p.id} value={p.id}>{p.name}</option>
+                            ))}
+                        </select>
+                    </div>
                 </div>
-            ) : (
-                <div style={{ textAlign: 'center', padding: '20px', backgroundColor: '#fff', borderRadius: '10px', marginBottom: '20px', border: '1px dashed #ccc' }}>
-                    <p style={{ margin: 0, color: '#666' }}>
-                        💡 <strong>주문 내역</strong>에서 리뷰 작성 버튼을 클릭하면 리뷰를 남길 수 있습니다.
-                    </p>
-                </div>
-            )}
 
-            {/* 3. 리뷰 리스트 출력 */}
-            <div style={{ marginTop: '20px' }}>
-                <h2 style={{ borderBottom: '2px solid #333', paddingBottom: '10px' }}>
-                    {productIdFromUrl ? "📦 상품별 후기" : "📢 전체 고객 후기"} ({reviews.length})
-                </h2>
-                {reviews.length > 0 ? (
-                    reviews.map(r => (
-                        <div key={r.id} style={reviewCardStyle}>
-                            <div style={{ flex: 1 }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
-                                    <strong>{r.userName} <span style={{fontSize: '0.8rem', color: '#888', fontWeight: 'normal'}}>| {r.productName}</span></strong>
-                                    <span style={{ color: '#00c73c' }}>{"⭐".repeat(r.rating)}</span>
-                                </div>
-                                <p style={{ margin: '10px 0', color: '#444', lineHeight: '1.6' }}>{r.content}</p>
-                                <small style={{ color: '#aaa' }}>{new Date(r.createdAt).toLocaleDateString()}</small>
+                {/* 2. 리뷰 작성 폼 */}
+                {orderIdFromUrl && orderIdFromUrl !== 'undefined' ? (
+                    <div style={writeBoxStyle}>
+                        <h3 style={{ marginTop: 0, marginBottom: '20px', textAlign: 'center', color: '#065f46' }}>✍️ 상품 리뷰 작성</h3>
+                        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '15px', padding: '10px', backgroundColor: '#fff', borderRadius: '10px' }}>
+                                <span style={{ fontWeight: 'bold', color: '#374151' }}>평점 선택</span>
+                                <select value={rating} onChange={(e) => setRating(Number(e.target.value))} style={ratingSelectStyle}>
+                                    {[5,4,3,2,1].map(n => <option key={n} value={n}>{n}점 {"⭐".repeat(n)}</option>)}
+                                </select>
                             </div>
-                            <button onClick={() => handleDelete(r.id)} style={deleteBtnStyle}>삭제</button>
-                        </div>
-                    ))
+                            <textarea
+                                value={content}
+                                onChange={(e) => setContent(e.target.value)}
+                                placeholder="상품에 대한 솔직한 후기를 작성해주세요."
+                                style={textareaStyle}
+                            />
+                            <button type="submit" style={submitBtnStyle}>리뷰 등록 완료</button>
+                        </form>
+                    </div>
                 ) : (
-                    <div style={{ textAlign: 'center', padding: '50px', color: '#bbb' }}>아직 작성된 리뷰가 없습니다.</div>
+                    <div style={infoBoxStyle}>
+                        <p style={{ margin: 0, color: '#4b5563', fontSize: '0.95rem' }}>
+                            💡 <strong>주문 내역</strong>에서 리뷰 작성 버튼을 클릭하면 리뷰를 남길 수 있습니다.
+                        </p>
+                    </div>
                 )}
+
+                {/* 3. 리뷰 리스트 출력 */}
+                <div style={{ marginTop: '40px' }}>
+                    <h2 style={{ textAlign: 'center', fontSize: '1.8rem', color: '#111827', marginBottom: '30px' }}>
+                        {productIdFromUrl ? `📦 해당 상품의 후기 (${reviews.length})` : `📢 전체 고객 후기 (${reviews.length})`}
+                    </h2>
+
+                    {reviews.length > 0 ? (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                            {reviews.map(r => (
+                                <div key={r.id} style={reviewCardStyle}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '15px' }}>
+                                        <div>
+                                            <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#111827' }}>{r.userName}</div>
+                                            <div style={{ fontSize: '0.85rem', color: '#6b7280', marginTop: '2px' }}>{r.productName}</div>
+                                        </div>
+                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '5px' }}>
+                                            <div style={{ color: '#fbbf24', fontSize: '1.1rem' }}>{"⭐".repeat(r.rating)}</div>
+                                            <div style={{ fontSize: '0.8rem', color: '#9ca3af' }}>{new Date(r.createdAt).toLocaleDateString()}</div>
+                                        </div>
+                                    </div>
+                                    <div style={contentBoxStyle}>{r.content}</div>
+                                    <div style={{ textAlign: 'right', marginTop: '10px' }}>
+                                        <button onClick={() => handleDelete(r.id)} style={deleteBtnStyle}>삭제</button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div style={emptyBoxStyle}>아직 작성된 리뷰가 없습니다.</div>
+                    )}
+                </div>
             </div>
+                  {/* 3️⃣ 최하단 홈으로 가기 버튼 (HomePage 디자인 통일) */}
+                  <button
+                    onClick={() => navigate('/')}
+                    style={{
+                      padding: '12px 40px',
+                      borderRadius: '30px',
+                      border: '2px solid #00c73c',
+                      cursor: 'pointer',
+                      backgroundColor: '#fff',
+                      color: '#00c73c',
+                      fontSize: '1rem',
+                      fontWeight: 'bold',
+                      transition: 'all 0.2s'
+                    }}
+                    onMouseEnter={(e) => {
+                        e.target.style.backgroundColor = '#00c73c';
+                        e.target.style.color = '#fff';
+                    }}
+                    onMouseLeave={(e) => {
+                        e.target.style.backgroundColor = '#fff';
+                        e.target.style.color = '#00c73c';
+                    }}
+                  >
+                    🏠 홈으로 돌아가기
+                  </button>
         </div>
     );
 };
 
-// 스타일 가이드
-const filterContainerStyle = { marginBottom: '30px', padding: '20px', backgroundColor: '#fff', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', textAlign: 'center' };
-const selectStyle = { padding: '10px', borderRadius: '6px', border: '1px solid #ddd', marginLeft: '10px', minWidth: '250px' };
-const writeBoxStyle = { padding: '25px', backgroundColor: '#effaf2', borderRadius: '12px', border: '2px solid #00c73c', marginBottom: '30px' };
-const submitBtnStyle = { backgroundColor: '#00c73c', color: 'white', border: 'none', padding: '12px', cursor: 'pointer', borderRadius: '6px', fontWeight: 'bold', fontSize: '1rem' };
-const deleteBtnStyle = { color: '#ff4d4f', border: '1px solid #ff4d4f', borderRadius: '4px', padding: '4px 8px', background: 'none', cursor: 'pointer', height: 'fit-content', marginLeft: '20px', fontSize: '0.85rem' };
-const reviewCardStyle = { display: 'flex', padding: '25px 0', borderBottom: '1px solid #eee' };
+// --- 스타일 가이드 ---
+const filterContainerStyle = { marginBottom: '30px', padding: '25px', backgroundColor: '#ffffff', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', border: '1px solid #e5e7eb' };
+const selectStyle = { padding: '12px 20px', borderRadius: '12px', border: '1px solid #d1d5db', minWidth: '300px', fontSize: '1rem', outline: 'none', appearance: 'none', backgroundColor: '#f3f4f6' };
+const writeBoxStyle = { padding: '30px', backgroundColor: '#ecfdf5', borderRadius: '20px', border: '2px solid #10b981', marginBottom: '40px', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' };
+const ratingSelectStyle = { border: 'none', fontSize: '1rem', fontWeight: 'bold', color: '#059669', cursor: 'pointer', outline: 'none' };
+const textareaStyle = { height: '140px', padding: '15px', borderRadius: '12px', border: '1px solid #d1d5db', fontSize: '1rem', lineHeight: '1.6', outline: 'none', resize: 'none' };
+const submitBtnStyle = { backgroundColor: '#10b981', color: 'white', border: 'none', padding: '15px', cursor: 'pointer', borderRadius: '12px', fontWeight: 'bold', fontSize: '1.1rem', transition: 'background 0.2s' };
+const infoBoxStyle = { textAlign: 'center', padding: '20px', backgroundColor: '#fff', borderRadius: '16px', marginBottom: '30px', border: '1px dashed #d1d5db' };
+const reviewCardStyle = { padding: '25px', backgroundColor: '#ffffff', borderRadius: '20px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', border: '1px solid #f3f4f6' };
+const contentBoxStyle = { padding: '15px', backgroundColor: '#f9fafb', borderRadius: '12px', color: '#374151', lineHeight: '1.7', whiteSpace: 'pre-wrap' };
+const deleteBtnStyle = { color: '#ef4444', border: '1px solid #fca5a5', borderRadius: '8px', padding: '6px 14px', background: 'none', cursor: 'pointer', fontSize: '0.85rem', fontWeight: '500' };
+const emptyBoxStyle = { textAlign: 'center', padding: '60px', color: '#9ca3af', backgroundColor: '#fff', borderRadius: '20px', border: '1px solid #f3f4f6', fontSize: '1.1rem' };
 
 export default ReviewManagementPage;

@@ -83,6 +83,31 @@ const OrderListPage = () => {
           <p style={{ textAlign: 'center', color: '#bbb' }}>주문 내역이 없습니다.</p>
         )}
       </div>
+            {/* 3️⃣ 최하단 홈으로 가기 버튼 (HomePage 디자인 통일) */}
+            <button
+              onClick={() => navigate('/')}
+              style={{
+                padding: '12px 40px',
+                borderRadius: '30px',
+                border: '2px solid #00c73c',
+                cursor: 'pointer',
+                backgroundColor: '#fff',
+                color: '#00c73c',
+                fontSize: '1rem',
+                fontWeight: 'bold',
+                transition: 'all 0.2s'
+              }}
+              onMouseEnter={(e) => {
+                  e.target.style.backgroundColor = '#00c73c';
+                  e.target.style.color = '#fff';
+              }}
+              onMouseLeave={(e) => {
+                  e.target.style.backgroundColor = '#fff';
+                  e.target.style.color = '#00c73c';
+              }}
+            >
+              🏠 홈으로 돌아가기
+            </button>
     </div>
   );
 };

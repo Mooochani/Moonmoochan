@@ -16,7 +16,7 @@ export default function HomePage() {
         <div className="home-container">
             <header className="home-header">
                 <div className="header-content">
-                    <h1>🛒 네이버 쇼핑커머스</h1>
+                    <h1>🛒 영무마켓</h1>
                     <div className="header-right">
                         <span className="user-name">👤 {user?.name}님 환영합니다!</span>
                         <button className="logout-btn" onClick={handleLogout}>로그아웃</button>
@@ -27,7 +27,7 @@ export default function HomePage() {
             <main className="home-main">
                 <div className="welcome-section">
                     <h2>환영합니다! 👋</h2>
-                    <p className="welcome-subtitle">네이버 쇼핑커머스 플랫폼에 로그인했습니다.</p>
+                    <p className="welcome-subtitle">YM MARKET 플랫폼에 로그인했습니다.</p>
                     <div className="user-info-card">
                         <p><strong>이름:</strong> {user?.name}</p>
                         <p><strong>이메일:</strong> {user?.email}</p>
@@ -52,14 +52,14 @@ export default function HomePage() {
                         </div>
                         <div className="feature-card" onClick={() => navigate('/review-management')}>
                             <h4>⭐ 리뷰 관리</h4>
-                            <p>리뷰를 작성하고 관리하세요</p>
+                            <p>다른 사람들의 구매 후기도{' '}확인해보세요</p>
                         </div>
                     </div>
                 </div>
             </main>
 
             <footer className="home-footer">
-                <p>© 2026 네이버 쇼핑커머스. All rights reserved.</p>
+                <p>© 2026 YM MARKET.</p>
             </footer>
         </div>
     );
