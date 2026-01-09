@@ -8,17 +8,15 @@ export default function SignupPage() {
     const navigate = useNavigate();
     const { login } = useAuth();
 
-    // 1️⃣ 상태 관리 (role 필드 추가)
     const [formData, setFormData] = useState({
         email: '',
         password: '',
         name: '',
-        role: 'CUSTOMER' // 초기값은 고객(CUSTOMER)
+        role: 'CUSTOMER'
     });
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
-    // 2️⃣ 입력 필드 변경 처리
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData((prev) => ({
@@ -27,14 +25,12 @@ export default function SignupPage() {
         }));
     };
 
-    // 3️⃣ 회원가입 제출
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
         setLoading(true);
 
         try {
-            // ✅ role을 인자에 추가하여 전송
             const response = await authService.signup(
                 formData.email,
                 formData.password,
@@ -43,16 +39,11 @@ export default function SignupPage() {
             );
 
             const { token, userId, email, name, role } = response.data;
-            console.log('✅ 회원가입 성공:', { userId, email, name, role });
-
-            // ✅ AuthContext에 역할(role) 정보까지 포함하여 저장
             login({ userId, email, name, role }, token);
-
             navigate('/');
 
         } catch (err) {
             const errorMessage = err.response?.data?.message || '회원가입 실패했습니다.';
-            console.error('❌ 회원가입 실패:', errorMessage);
             setError(errorMessage);
         } finally {
             setLoading(false);
@@ -109,34 +100,54 @@ export default function SignupPage() {
                         />
                     </div>
 
-                    {/* ✅ 가입 유형 선택 (추가된 섹션) */}
+                    {/* ✅ 가입 유형 섹션: 깨짐 방지를 위해 스타일 보정 */}
                     <div className="form-group">
                         <label>가입 유형</label>
                         <div style={{
                             display: 'flex',
-                            gap: '15px',
+                            justifyContent: 'center',
+                            gap: '20px',
                             marginTop: '8px',
-                            padding: '10px',
+                            padding: '12px',
                             border: '1px solid #ddd',
-                            borderRadius: '5px'
+                            borderRadius: '5px',
+                            backgroundColor: '#fafafa'
                         }}>
-                            <label style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer' }}>
+                            <label style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                cursor: 'pointer',
+                                fontSize: '14px',
+                                whiteSpace: 'nowrap' // 글자 잘림 방지
+                            }}>
                                 <input
                                     type="radio"
                                     name="role"
                                     value="CUSTOMER"
                                     checked={formData.role === 'CUSTOMER'}
                                     onChange={handleChange}
-                                /> 구매자
+                                    style={{ width: 'auto', margin: 0 }} // 크기 고정
+                                />
+                                <span>구매자</span>
                             </label>
-                            <label style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer' }}>
+                            <label style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                cursor: 'pointer',
+                                fontSize: '14px',
+                                whiteSpace: 'nowrap' // 글자 잘림 방지
+                            }}>
                                 <input
                                     type="radio"
                                     name="role"
                                     value="SELLER"
                                     checked={formData.role === 'SELLER'}
                                     onChange={handleChange}
-                                /> 판매자
+                                    style={{ width: 'auto', margin: 0 }} // 크기 고정
+                                />
+                                <span>판매자</span>
                             </label>
                         </div>
                     </div>
