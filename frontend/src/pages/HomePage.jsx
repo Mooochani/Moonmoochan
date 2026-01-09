@@ -47,8 +47,8 @@ export default function HomePage() {
                             <p>구매한 상품의 주문 현황을 확인하세요</p>
                         </div>
                         <div className="feature-card" onClick={() => navigate('/sales-stats')}>
-                            <h4>💰 판매 통계</h4>
-                            <p>판매자라면 판매 통계를 확인하세요</p>
+                            <h4>💰 총 매출 확인</h4>
+                            <p>모든 판매자의 매출을 훔쳐보세요.</p>
                         </div>
                         <div className="feature-card" onClick={() => navigate('/review-management')}>
                             <h4>⭐ 리뷰 관리</h4>
