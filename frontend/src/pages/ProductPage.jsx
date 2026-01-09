@@ -10,7 +10,6 @@ const ProductPage = () => {
   const [selectedCategory, setSelectedCategory] = useState('전체');
   const navigate = useNavigate();
 
-  // 사용자님이 말씀하신 3가지 카테고리 + 전체보기
   const categories = ['전체', '가전', '의류', '식품'];
 
   useEffect(() => {
@@ -19,7 +18,6 @@ const ProductPage = () => {
         setProducts(response.data);
         setFilteredProducts(response.data);
 
-        // 수량 초기화
         const initialQuantities = {};
         response.data.forEach(product => {
           initialQuantities[product.id] = 1;
@@ -33,12 +31,10 @@ const ProductPage = () => {
       });
   }, []);
 
-  // 카테고리가 바뀔 때마다 필터링 실행
   useEffect(() => {
     if (selectedCategory === '전체') {
       setFilteredProducts(products);
     } else {
-      // 엔티티의 category 필드와 선택된 카테고리명을 비교
       setFilteredProducts(products.filter(p => p.category === selectedCategory));
     }
   }, [selectedCategory, products]);
@@ -71,21 +67,7 @@ const ProductPage = () => {
 
       <h1 style={{ marginBottom: '20px', color: '#333', fontWeight: 'bold', fontSize: '1.6rem' }}>📦 상품 목록</h1>
 
-      {/* ✅ 상단 카테고리 탭 바 (모바일 앱 스타일) */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-around',
-        backgroundColor: '#fff',
-        padding: '12px 10px',
-        borderRadius: '30px',
-        boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-        width: '100%',
-        maxWidth: '450px',
-        marginBottom: '25px',
-        position: 'sticky',
-        top: '10px',
-        zIndex: 100
-      }}>
+      <div style={categoryTabBarStyle}>
         {categories.map(cat => (
           <div
             key={cat}
@@ -105,31 +87,26 @@ const ProductPage = () => {
         ))}
       </div>
 
-      {/* 상품 카드 리스트 */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: '1fr', // 친구들 폰에서 크게 보이도록 1열 고정
-        gap: '20px',
-        width: '100%',
-        maxWidth: '450px',
-        marginBottom: '40px'
-      }}>
+      <div style={gridStyle}>
         {filteredProducts.length > 0 ? (
           filteredProducts.map(product => (
             <div key={product.id} style={cardStyle}>
-              <div style={{ width: '100%', height: '220px', backgroundColor: '#eee' }}>
+              <div style={imageContainerStyle}>
                 {product.imageUrl ? (
-                  <img src={product.imageUrl} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img src={product.imageUrl} alt={product.name} style={imageStyle} />
                 ) : (
-                  <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ccc' }}>이미지 준비중</div>
+                  <div style={noImageStyle}>이미지 준비중</div>
                 )}
               </div>
 
               <div style={{ padding: '20px', textAlign: 'center' }}>
-                <h4 style={{ margin: '0 0 8px 0', fontSize: '1.3rem', color: '#333' }}>{product.name}</h4>
-                <p style={{ color: '#00c73c', fontWeight: 'bold', fontSize: '1.5rem', margin: '5px 0' }}>{product.price.toLocaleString()}원</p>
+                <h4 style={productNameStyle}>{product.name}</h4>
 
-                {/* ✅ 수량 버튼: 흰색 기호 + 네이버 그린 배경 유지 */}
+                {/* ✅ 추가된 상품 설명 (description) */}
+                <p style={descriptionStyle}>{product.description || "간단한 상품 설명이 없습니다."}</p>
+
+                <p style={priceStyle}>{product.price.toLocaleString()}원</p>
+
                 <div style={qtySectionStyle}>
                   <button type="button" onClick={() => updateQuantity(product.id, -1)} style={qtyBtnStyle}>-</button>
                   <span style={{ fontWeight: 'bold', fontSize: '1.2rem', minWidth: '40px' }}>{quantities[product.id] || 1}</span>
@@ -153,7 +130,31 @@ const ProductPage = () => {
   );
 };
 
-// 스타일 컴포넌트들
+// --- 스타일 객체들 (코드 정돈) ---
+const categoryTabBarStyle = {
+  display: 'flex',
+  justifyContent: 'space-around',
+  backgroundColor: '#fff',
+  padding: '12px 10px',
+  borderRadius: '30px',
+  boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+  width: '100%',
+  maxWidth: '450px',
+  marginBottom: '25px',
+  position: 'sticky',
+  top: '10px',
+  zIndex: 100
+};
+
+const gridStyle = {
+  display: 'grid',
+  gridTemplateColumns: '1fr',
+  gap: '20px',
+  width: '100%',
+  maxWidth: '450px',
+  marginBottom: '40px'
+};
+
 const cardStyle = {
   borderRadius: '20px',
   backgroundColor: '#fff',
@@ -162,6 +163,23 @@ const cardStyle = {
   overflow: 'hidden',
   boxShadow: '0 6px 15px rgba(0,0,0,0.06)',
 };
+
+const imageContainerStyle = { width: '100%', height: '220px', backgroundColor: '#eee' };
+const imageStyle = { width: '100%', height: '100%', objectFit: 'cover' };
+const noImageStyle = { width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ccc' };
+
+const productNameStyle = { margin: '0 0 5px 0', fontSize: '1.3rem', color: '#333', fontWeight: 'bold' };
+
+// ✅ 설명(Description) 스타일
+const descriptionStyle = {
+  margin: '0 0 10px 0',
+  fontSize: '0.95rem',
+  color: '#666', // 약간 연한 회색으로 본문 느낌 제공
+  lineHeight: '1.4',
+  wordBreak: 'keep-all' // 한글 단어 깨짐 방지
+};
+
+const priceStyle = { color: '#00c73c', fontWeight: 'bold', fontSize: '1.5rem', margin: '5px 0' };
 
 const qtySectionStyle = {
   display: 'flex',
@@ -179,7 +197,7 @@ const qtyBtnStyle = {
   borderRadius: '50%',
   border: 'none',
   backgroundColor: '#00c73c',
-  color: '#ffffff', // ✅ 기호 흰색 고정
+  color: '#ffffff',
   fontSize: '1.5rem',
   fontWeight: 'bold',
   display: 'flex',
